@@ -79,7 +79,7 @@ if (!StringUtil.contains(tabs4Names, tabs4)) {
 				<liferay-ui:message key="name" />
 			</td>
 			<td>
-				<input <%= windowState.equals(WindowState.MAXIMIZED) ? "autoFocus" : StringPool.BLANK %> name="<portlet:namespace />name_<%= defaultLanguageId %>" size="30" type="text" value="<%= HtmlUtil.escape(name) %>" />
+				<aui:input autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" name="name_<%= defaultLanguageId %>" value="<%= HtmlUtil.escape(name) %>" />
 			</td>
 		</tr>
 		<tr>
