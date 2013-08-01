@@ -1954,6 +1954,19 @@ AUI.add(
 				container.delegate(
 					'click',
 					function(event) {
+						var button = event.currentTarget;
+						var imageField = button.ancestor('.journal-article-component-container');
+						var imageChooser = imageField.one('.journal-image-field');
+						console.log(imageField);
+						button.hide();
+						imageChooser.show();
+					},
+					'#' + instance.portletNamespace + 'journalImageChooseButton'
+				);
+
+				container.delegate(
+					'click',
+					function(event) {
 						var link = event.currentTarget;
 						var imagePreviewDiv = link.get('parentNode').get('parentNode').one('.journal-image-preview');
 

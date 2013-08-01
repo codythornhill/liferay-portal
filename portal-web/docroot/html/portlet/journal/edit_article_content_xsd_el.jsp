@@ -192,13 +192,20 @@ Element contentEl = (Element)request.getAttribute(WebKeys.JOURNAL_ARTICLE_CONTEN
 				</c:if>
 
 				<c:if test='<%= elType.equals("image") %>'>
-					<aui:input cssClass="journal-image-field lfr-input-text-container flexible" label="" name="image" size="40" type="file" />
+					<%
+					String hideChooseImage = "journal-image-field lfr-input-text-container flexible";
+					if(Validator.isNotNull(elContent)) {
+						hideChooseImage += " aui-helper-hidden";
+					}
+					%>
+
+					<aui:input cssClass="<%= hideChooseImage %>" label="" name="image" size="40" type="file" />
 
 					<br />
 
 					<c:if test="<%= Validator.isNotNull(elContent) %>">
 						<span class="journal-image-show-hide">
-							[ <aui:a cssClass="journal-image-link" href="javascript:void(0);"><span class="show-label"><liferay-ui:message key="show" /></span><span class="hide-label aui-helper-hidden"><liferay-ui:message key="hide" /></span></aui:a> ]
+							[<aui:a cssClass="journal-image-link" href="javascript:void(0);"><span class="show-label"><liferay-ui:message key="show" /></span><span class="hide-label aui-helper-hidden"><liferay-ui:message key="hide" /></span></aui:a>]
 						</span>
 
 						<div class="journal-image-preview aui-helper-hidden">
@@ -210,6 +217,8 @@ Element contentEl = (Element)request.getAttribute(WebKeys.JOURNAL_ARTICLE_CONTEN
 							<aui:input inputCssClass="journal-image-preview-content" name="<%= journalImageContentInputName %>" type="hidden" value="<%= elContent %>" />
 
 							<aui:input name="journalImageDelete" type="hidden" value="" />
+
+							<aui:button name="journalImageChooseButton" value="choose" /> 
 
 							<aui:button name="journalImageDeleteButton" value="delete" />
 
