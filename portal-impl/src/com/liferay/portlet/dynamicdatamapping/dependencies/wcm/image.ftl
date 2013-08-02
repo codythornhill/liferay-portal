@@ -1,24 +1,32 @@
 <#include "../init.ftl">
 
 <@aui["field-wrapper"] data=data helpMessage=escape(fieldStructure.tip)>
-	<@aui.input cssClass=cssClass helpMessage=escape(fieldStructure.tip) label=escape(label) name=namespacedFieldName type="file">
-		<@aui.validator name="acceptFiles">'.gif,.jpeg,.jpg,.png'</@aui.validator>
+	<#if (fieldValue != "")>
+		<#assign cssClass = "${cssClass} hide">
+	</#if>
 
-		<#if required && !(fields??)>
-			<@aui.validator name="required" />
-		</#if>
-	</@aui.input>
+		<@aui.input cssClass=cssClass helpMessage=escape(fieldStructure.tip) label=escape(label) name=namespacedFieldName type="file" onChange="${portletNamespace}${namespacedFieldName}ImageChange();">
+			<@aui.validator name="acceptFiles">'.gif,.jpeg,.jpg,.png'</@aui.validator>
+
+			<#if required && !(fields??)>
+				<@aui.validator name="required" />
+			</#if>
+		</@aui.input>
 
 	<@aui.input name="${namespacedFieldName}Delete" type="hidden" value="delete" />
 
 	<#if (fields??) && (fieldValue != "")>
-		[ <a href="javascript:;" id="${portletNamespace}${namespacedFieldName}ToggleImage" onClick="${portletNamespace}${namespacedFieldName}ToggleImage();">${languageUtil.get(locale, "show")}</a> ]
+		<div>
+			<a href="javascript:;" class="btn" id="${portletNamespace}${namespacedFieldName}ToggleImage" onClick="${portletNamespace}${namespacedFieldName}ToggleImage();">${languageUtil.get(locale, "show")}</a>
+
+			<a href="javascript:;" class="btn" id="${portletNamespace}${namespacedFieldName}ChooseImage" onClick="${portletNamespace}${namespacedFieldName}ToggleChooseImage();">${languageUtil.get(locale, "choose")}</a>
+
+			<#if !required>
+				<a href="javascript:;" class="btn" id="${portletNamespace}${namespacedFieldName}DeleteImage" onClick="${portletNamespace}${namespacedFieldName}ToggleDeleteImage();">${languageUtil.get(locale, "delete")}</a>
+			</#if>
+		</div>
 
 		<div class="hide wcm-image-preview" id="${portletNamespace}${namespacedFieldName}Container">
-			<#if !required>
-				<a href="javascript:;" id="${portletNamespace}${namespacedFieldName}DeleteImage" onClick="${portletNamespace}${namespacedFieldName}ToggleDeleteImage();">${languageUtil.get(locale, "delete")}</a>
-			</#if>
-
 			<img id="${portletNamespace}${namespacedFieldName}Image" src="${fieldValue}" />
 		</div>
 	</#if>
@@ -44,6 +52,19 @@
 			A.one('#${portletNamespace}${namespacedFieldName}ToggleImage').setContent(toggleText);
 
 			containerNode.toggle();
+		},
+		['aui-base']
+	);
+
+	Liferay.provide(
+		window,
+		'${portletNamespace}${namespacedFieldName}ToggleChooseImage',
+		function() {
+			var A = AUI();
+
+			A.one('#${portletNamespace}${namespacedFieldName}').show();
+
+			A.one('#${portletNamespace}${namespacedFieldName}ChooseImage').hide();
 		},
 		['aui-base']
 	);
