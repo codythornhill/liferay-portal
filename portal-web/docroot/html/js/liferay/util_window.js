@@ -175,7 +175,9 @@ AUI.add(
 						config.id = A.guid();
 					}
 
-					config.iframeId = config.id + instance.IFRAME_SUFFIX;
+					if (!config.iframeId) {
+						config.iframeId = config.id + instance.IFRAME_SUFFIX;
+					}
 				},
 
 				_getWindow: function(config) {
@@ -406,6 +408,6 @@ AUI.add(
 	},
 	'',
 	{
-		requires: ['aui-modal', 'aui-dialog-iframe-deprecated', 'event-resize', 'liferay-widget-zindex']
+		requires: ['aui-dialog-iframe-deprecated', 'aui-modal', 'event-resize', 'liferay-widget-zindex']
 	}
 );

@@ -419,10 +419,27 @@ public class BackgroundTaskLocalServiceUtil {
 	}
 
 	public static int getBackgroundTasksCount(long groupId,
+		java.lang.String taskExecutorClassName, boolean completed)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .getBackgroundTasksCount(groupId, taskExecutorClassName,
+			completed);
+	}
+
+	public static int getBackgroundTasksCount(long groupId,
 		java.lang.String name, java.lang.String taskExecutorClassName)
 		throws com.liferay.portal.kernel.exception.SystemException {
 		return getService()
 				   .getBackgroundTasksCount(groupId, name, taskExecutorClassName);
+	}
+
+	public static int getBackgroundTasksCount(long groupId,
+		java.lang.String name, java.lang.String taskExecutorClassName,
+		boolean completed)
+		throws com.liferay.portal.kernel.exception.SystemException {
+		return getService()
+				   .getBackgroundTasksCount(groupId, name,
+			taskExecutorClassName, completed);
 	}
 
 	public static java.lang.String getBackgroundTaskStatusJSON(

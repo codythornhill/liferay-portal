@@ -702,7 +702,7 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 									// Status
 
 									if (showNonApprovedDocuments && !portletId.equals(PortletKeys.TRASH)) {
-										row.addText(LanguageUtil.get(pageContext, WorkflowConstants.getStatusLabel(curFileVersion.getStatus())));
+										row.addStatus(curFileVersion.getStatus(), curFileVersion.getStatusByUserId(), curFileVersion.getStatusDate());
 									}
 
 									// Action
@@ -978,13 +978,19 @@ request.setAttribute("view_file_entry.jsp-fileEntry", fileEntry);
 						modelResourceDescription="<%= fileEntry.getTitle() %>"
 						resourcePrimKey="<%= String.valueOf(fileEntry.getFileEntryId()) %>"
 						var="permissionsURL"
+						windowState="<%= LiferayWindowState.POP_UP.toString() %>"
 					/>
 
 					icon: 'icon-permissions',
 					label: '<%= UnicodeLanguageUtil.get(pageContext, "permissions") %>',
 					on: {
 						click: function(event) {
-							location.href = '<%= permissionsURL.toString() %>';
+							Liferay.Util.openWindow(
+								{
+									title: '<%= UnicodeLanguageUtil.get(pageContext, "permissions") %>',
+								 	uri: '<%= permissionsURL.toString() %>',
+								}
+							);
 						}
 					}
 				}

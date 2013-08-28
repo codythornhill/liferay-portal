@@ -38,6 +38,7 @@ import com.liferay.portal.kernel.search.SearchContext;
 import com.liferay.portal.kernel.search.SearchException;
 import com.liferay.portal.kernel.search.Sort;
 import com.liferay.portal.kernel.systemevent.SystemEvent;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.DigesterUtil;
 import com.liferay.portal.kernel.util.GetterUtil;
 import com.liferay.portal.kernel.util.ListUtil;
@@ -1227,6 +1228,8 @@ public class DLFileEntryLocalServiceImpl
 	public boolean hasFileEntryLock(long userId, long fileEntryId)
 		throws PortalException, SystemException {
 
+		boolean checkedOut = isFileEntryCheckedOut(fileEntryId);
+
 		DLFileEntry dlFileEntry = getFileEntry(fileEntryId);
 
 		long folderId = dlFileEntry.getFolderId();
@@ -1238,6 +1241,12 @@ public class DLFileEntryLocalServiceImpl
 			(folderId != DLFolderConstants.DEFAULT_PARENT_FOLDER_ID)) {
 
 			hasLock = dlFolderService.hasInheritableLock(folderId);
+		}
+
+		if (checkedOut != hasLock) {
+			dlAppHelperLocalService.registerDLSyncEventCallback(
+				DLSyncConstants.EVENT_UPDATE, DLSyncConstants.TYPE_FILE,
+				fileEntryId);
 		}
 
 		return hasLock;
@@ -1399,7 +1408,7 @@ public class DLFileEntryLocalServiceImpl
 				Field.USER_ID, String.valueOf(creatorUserId));
 		}
 
-		if (Validator.isNotNull(mimeTypes)) {
+		if (ArrayUtil.isNotEmpty(mimeTypes)) {
 			searchContext.setAttribute("mimeTypes", mimeTypes);
 		}
 

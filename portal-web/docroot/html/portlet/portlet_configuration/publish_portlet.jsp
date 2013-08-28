@@ -70,7 +70,7 @@ else if (stagingGroup.isLayout()) {
 
 PortletURL portletURL = currentURLObj;
 
-portletURL.setParameter("tabs3", "all-publication-processes");
+portletURL.setParameter("tabs3", "current-and-previous");
 %>
 
 <c:choose>
@@ -81,11 +81,22 @@ portletURL.setParameter("tabs3", "all-publication-processes");
 	</c:when>
 	<c:otherwise>
 		<liferay-ui:tabs
-			names="new-publication-process,all-publication-processes"
+			names="new-publication-process,current-and-previous"
 			param="tabs3"
 			refresh="<%= false %>"
 		>
 			<liferay-ui:section>
+
+				<%
+				int incompleteBackgroundTaskCount = BackgroundTaskLocalServiceUtil.getBackgroundTasksCount(themeDisplay.getScopeGroupId(), selPortlet.getPortletId(), PortletStagingBackgroundTaskExecutor.class.getName(), false);
+				%>
+
+				<div class="<%= (incompleteBackgroundTaskCount == 0) ? "hide" : "in-progress" %>" id="<portlet:namespace />incompleteProcessMessage">
+					<liferay-util:include page="/html/portlet/layouts_admin/incomplete_processes_message.jsp">
+						<liferay-util:param name="incompleteBackgroundTaskCount" value="<%= String.valueOf(incompleteBackgroundTaskCount) %>" />
+					</liferay-util:include>
+				</div>
+
 				<portlet:actionURL var="publishPortletURL">
 					<portlet:param name="struts_action" value="/portlet_configuration/export_import" />
 				</portlet:actionURL>
@@ -107,7 +118,7 @@ portletURL.setParameter("tabs3", "all-publication-processes");
 						PortletDataHandlerControl[] configurationControls = portletDataHandler.getExportConfigurationControls(company.getCompanyId(), themeDisplay.getScopeGroupId(), selPortlet, exportableLayout.getPlid(), false);
 						%>
 
-						<c:if test="<%= (configurationControls != null) && (configurationControls.length > 0) %>">
+						<c:if test="<%= ArrayUtil.isNotEmpty(configurationControls) %>">
 							<aui:fieldset cssClass="options-group" label="application">
 								<ul class="lfr-tree select-options unstyled">
 									<li class="options">
@@ -182,9 +193,11 @@ portletURL.setParameter("tabs3", "all-publication-processes");
 							ManifestSummary manifestSummary = portletDataContext.getManifestSummary();
 
 							long exportModelCount = portletDataHandler.getExportModelCount(manifestSummary);
+
+							long modelDeletionCount = manifestSummary.getModelDeletionCount(portletDataHandler.getDeletionSystemEventStagedModelTypes());
 							%>
 
-							<c:if test="<%= (exportModelCount != 0) || (startDate != null) || (endDate != null) %>">
+							<c:if test="<%= (exportModelCount != 0) || (modelDeletionCount != 0) || (startDate != null) || (endDate != null) %>">
 								<aui:fieldset cssClass="options-group" label="content">
 									<ul class="lfr-tree select-options unstyled">
 										<li class="tree-item">
@@ -215,8 +228,6 @@ portletURL.setParameter("tabs3", "all-publication-processes");
 																	monthParam="startDateMonth"
 																	monthValue="<%= yesterday.get(Calendar.MONTH) %>"
 																	yearParam="startDateYear"
-																	yearRangeEnd="<%= yesterday.get(Calendar.YEAR) %>"
-																	yearRangeStart="<%= yesterday.get(Calendar.YEAR) - 100 %>"
 																	yearValue="<%= yesterday.get(Calendar.YEAR) %>"
 																/>
 
@@ -228,7 +239,6 @@ portletURL.setParameter("tabs3", "all-publication-processes");
 																	disabled="<%= false %>"
 																	hourParam='<%= "startDateHour" %>'
 																	hourValue="<%= yesterday.get(Calendar.HOUR) %>"
-																	minuteInterval="<%= 1 %>"
 																	minuteParam='<%= "startDateMinute" %>'
 																	minuteValue="<%= yesterday.get(Calendar.MINUTE) %>"
 																/>
@@ -245,8 +255,6 @@ portletURL.setParameter("tabs3", "all-publication-processes");
 																	monthParam="endDateMonth"
 																	monthValue="<%= today.get(Calendar.MONTH) %>"
 																	yearParam="endDateYear"
-																	yearRangeEnd="<%= today.get(Calendar.YEAR) %>"
-																	yearRangeStart="<%= today.get(Calendar.YEAR) - 100 %>"
 																	yearValue="<%= today.get(Calendar.YEAR) %>"
 																/>
 
@@ -289,7 +297,7 @@ portletURL.setParameter("tabs3", "all-publication-processes");
 											/>
 										</li>
 
-										<c:if test="<%= exportModelCount != 0 %>">
+										<c:if test="<%= (exportModelCount != 0) || (modelDeletionCount != 0) %>">
 											<li class="options">
 												<ul class="portlet-list">
 													<li class="tree-item">
@@ -297,6 +305,7 @@ portletURL.setParameter("tabs3", "all-publication-processes");
 
 														<liferay-util:buffer var="badgeHTML">
 															<span class="badge badge-info"><%= exportModelCount > 0 ? exportModelCount : StringPool.BLANK %></span>
+															<span class="badge badge-warning" id="<portlet:namespace />deletions"><%= modelDeletionCount > 0 ? (modelDeletionCount + StringPool.SPACE + LanguageUtil.get(pageContext, "deletions")) : StringPool.BLANK %></span>
 														</liferay-util:buffer>
 
 														<aui:input label='<%= LanguageUtil.get(pageContext, "content") + badgeHTML %>' name='<%= PortletDataHandlerKeys.PORTLET_DATA + "_" + selPortlet.getRootPortletId() %>' type="checkbox" value="<%= true %>" />
@@ -305,14 +314,14 @@ portletURL.setParameter("tabs3", "all-publication-processes");
 														PortletDataHandlerControl[] exportControls = portletDataHandler.getExportControls();
 														PortletDataHandlerControl[] metadataControls = portletDataHandler.getExportMetadataControls();
 
-														if (Validator.isNotNull(exportControls) || Validator.isNotNull(metadataControls)) {
+														if (ArrayUtil.isNotEmpty(exportControls) || ArrayUtil.isNotEmpty(metadataControls)) {
 														%>
 
 															<div class="hide" id="<portlet:namespace />content_<%= selPortlet.getRootPortletId() %>">
 																<ul class="lfr-tree unstyled">
 																	<li class="tree-item">
 																		<aui:fieldset cssClass="portlet-type-data-section" label="content">
-																			<aui:field-wrapper label='<%= Validator.isNotNull(metadataControls) ? "content" : StringPool.BLANK %>'>
+																			<aui:field-wrapper label='<%= ArrayUtil.isNotEmpty(metadataControls) ? "content" : StringPool.BLANK %>'>
 																				<ul class="lfr-tree unstyled">
 																					<li class="tree-item">
 																						<aui:input data-name='<%= LanguageUtil.get(locale, "delete-portlet-data") %>' label="delete-portlet-data-before-importing" name="<%= PortletDataHandlerKeys.DELETE_PORTLET_DATA %>" type="checkbox" />
@@ -354,7 +363,7 @@ portletURL.setParameter("tabs3", "all-publication-processes");
 
 																					PortletDataHandlerControl[] childrenControls = control.getChildren();
 
-																					if ((childrenControls != null) && (childrenControls.length > 0)) {
+																					if (ArrayUtil.isNotEmpty(childrenControls)) {
 																						request.setAttribute("render_controls.jsp-controls", childrenControls);
 																					%>
 
@@ -375,7 +384,7 @@ portletURL.setParameter("tabs3", "all-publication-processes");
 																</ul>
 															</div>
 
-															<ul id="<portlet:namespace />showChangeContent">
+															<ul id="<portlet:namespace />showChangeContent_<%= selPortlet.getRootPortletId() %>">
 																<li>
 																	<span class="selected-labels" id="<portlet:namespace />selectedContent_<%= selPortlet.getRootPortletId() %>"></span>
 
@@ -390,7 +399,7 @@ portletURL.setParameter("tabs3", "all-publication-processes");
 															</ul>
 
 															<aui:script>
-																Liferay.Util.toggleBoxes('<portlet:namespace /><%= PortletDataHandlerKeys.PORTLET_DATA + StringPool.UNDERLINE + selPortlet.getRootPortletId() %>Checkbox', '<portlet:namespace />showChangeContent');
+																Liferay.Util.toggleBoxes('<portlet:namespace /><%= PortletDataHandlerKeys.PORTLET_DATA + StringPool.UNDERLINE + selPortlet.getRootPortletId() %>Checkbox', '<portlet:namespace />showChangeContent<%= StringPool.UNDERLINE + selPortlet.getRootPortletId() %>');
 															</aui:script>
 
 														<%
@@ -401,17 +410,26 @@ portletURL.setParameter("tabs3", "all-publication-processes");
 												</ul>
 
 												<ul>
-													<aui:fieldset cssClass="comments-and-ratings" label="for-each-of-the-selected-content-types,-publish-their">
-														<span class="selected-labels" id="<portlet:namespace />selectedCommentsAndRatings"></span>
+													<aui:fieldset cssClass="content-options" label="for-each-of-the-selected-content-types,-publish-their">
+														<span class="selected-labels" id="<portlet:namespace />selectedContentOptions"></span>
 
-														<aui:a cssClass="modify-link" href="javascript:;" id="commentsAndRatingsLink" label="change" method="get" />
+														<aui:a cssClass="modify-link" href="javascript:;" id="contentOptionsLink" label="change" method="get" />
 
-														<div class="hide" id="<portlet:namespace />commentsAndRatings">
+														<div class="hide" id="<portlet:namespace />contentOptions">
 															<ul class="lfr-tree unstyled">
 																<li class="tree-item">
 																	<aui:input label="comments" name="<%= PortletDataHandlerKeys.COMMENTS %>" type="checkbox" value="<%= true %>" />
 
 																	<aui:input label="ratings" name="<%= PortletDataHandlerKeys.RATINGS %>" type="checkbox" value="<%= true %>" />
+
+																	<c:if test="<%= modelDeletionCount != 0 %>">
+
+																		<%
+																		String deletionsLabel = LanguageUtil.get(pageContext, "deletions") + (modelDeletionCount > 0 ? " (" + modelDeletionCount + ")" : StringPool.BLANK);
+																		%>
+
+																		<aui:input data-name="<%= deletionsLabel %>" helpMessage="deletions-help" label="<%= deletionsLabel %>" name="<%= PortletDataHandlerKeys.DELETIONS %>" type="checkbox" value="<%= true %>" />
+																	</c:if>
 																</li>
 															</ul>
 														</div>
@@ -467,7 +485,10 @@ portletURL.setParameter("tabs3", "all-publication-processes");
 			new Liferay.ExportImport(
 				{
 					commentsNode: '#<%= PortletDataHandlerKeys.COMMENTS %>Checkbox',
+					deletePortletDataNode: '#<%= PortletDataHandlerKeys.DELETE_PORTLET_DATA %>Checkbox',
+					deletionsNode: '#<%= PortletDataHandlerKeys.DELETIONS %>Checkbox',
 					form: document.<portlet:namespace />fm1,
+					incompleteProcessMessageNode: '#<portlet:namespace />incompleteProcessMessage',
 					namespace: '<portlet:namespace />',
 					processesNode: '#publishProcesses',
 					processesResourceURL: '<%= publishProcessesURL.toString() %>',

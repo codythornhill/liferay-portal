@@ -53,7 +53,6 @@ import com.liferay.portlet.dynamicdatamapping.service.DDMStructureServiceUtil;
 import com.liferay.portlet.dynamicdatamapping.service.DDMTemplateServiceUtil;
 import com.liferay.portlet.dynamicdatamapping.storage.Field;
 import com.liferay.portlet.dynamicdatamapping.storage.Fields;
-import com.liferay.util.PwdGenerator;
 import com.liferay.util.freemarker.FreeMarkerTaglibFactoryUtil;
 
 import freemarker.ext.servlet.HttpRequestHashModel;
@@ -152,7 +151,7 @@ public class DDMXSDImpl implements DDMXSD {
 		StringBundler sb = new StringBundler(fieldRepetition);
 
 		while (fieldRepetition > 0) {
-			fieldStructure.put("fieldNamespace", PwdGenerator.getPassword(4));
+			fieldStructure.put("fieldNamespace", StringUtil.randomId());
 			fieldStructure.put("valueIndex", ddmFieldsCounter.get(name));
 
 			if ((fields != null) && fields.contains(name)) {
@@ -351,7 +350,7 @@ public class DDMXSDImpl implements DDMXSD {
 
 		Document document = element.getDocument();
 
-		String defaultLocale = LocalizationUtil.getDefaultLanguageId(
+		String defaultLanguageId = LocalizationUtil.getDefaultLanguageId(
 			document.asXML());
 
 		List<Element> dynamicElementElements = element.elements(
@@ -393,7 +392,7 @@ public class DDMXSDImpl implements DDMXSD {
 					putMetadataValue(
 						localeMap, attributeName, attributeValue, type);
 
-					if (defaultLocale.equals(locale)) {
+					if (defaultLanguageId.equals(locale)) {
 						putMetadataValue(
 							jsonObject, attributeName, attributeValue, type);
 					}
@@ -471,7 +470,7 @@ public class DDMXSDImpl implements DDMXSD {
 			freeMarkerContext.put("fields", fields);
 		}
 
-		fieldStructure.put("fieldNamespace", PwdGenerator.getPassword(4));
+		fieldStructure.put("fieldNamespace", StringUtil.randomId());
 		fieldStructure.put("valueIndex", ddmFieldsCounter.get(name));
 
 		List<Element> dynamicElementElements = element.elements(
@@ -609,12 +608,11 @@ public class DDMXSDImpl implements DDMXSD {
 
 		Document document = dynamicElementElement.getDocument();
 
-		String xml = document.asXML();
-
 		String[] availableLanguageIds =
-			LocalizationUtil.getAvailableLanguageIds(xml);
+			LocalizationUtil.getAvailableLanguageIds(document);
 
-		String defaultLanguageId = LocalizationUtil.getDefaultLanguageId(xml);
+		String defaultLanguageId = LocalizationUtil.getDefaultLanguageId(
+			document);
 
 		String languageId = LocaleUtil.toLanguageId(locale);
 
@@ -640,7 +638,7 @@ public class DDMXSDImpl implements DDMXSD {
 			fieldContext.put(attribute.getName(), attribute.getValue());
 		}
 
-		fieldContext.put("fieldNamespace", PwdGenerator.getPassword(4));
+		fieldContext.put("fieldNamespace", StringUtil.randomId());
 
 		fieldsContext.put(name, fieldContext);
 

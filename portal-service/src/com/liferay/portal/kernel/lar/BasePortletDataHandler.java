@@ -234,16 +234,23 @@ public abstract class BasePortletDataHandler implements PortletDataHandler {
 	public PortletDataHandlerControl[] getImportConfigurationControls(
 		Portlet portlet, ManifestSummary manifestSummary) {
 
-		String[] configurationOptions =
+		String[] configurationPortletOptions =
 			manifestSummary.getConfigurationPortletOptions(
 				portlet.getRootPortletId());
+
+		return getImportConfigurationControls(configurationPortletOptions);
+	}
+
+	@Override
+	public PortletDataHandlerControl[] getImportConfigurationControls(
+		String[] configurationPortletOptions) {
 
 		List<PortletDataHandlerBoolean> configurationControls =
 			new ArrayList<PortletDataHandlerBoolean>();
 
 		// Setup
 
-		if (ArrayUtil.contains(configurationOptions, "setup")) {
+		if (ArrayUtil.contains(configurationPortletOptions, "setup")) {
 			configurationControls.add(
 				new PortletDataHandlerBoolean(
 					null, PortletDataHandlerKeys.PORTLET_SETUP, "setup", true,
@@ -252,7 +259,9 @@ public abstract class BasePortletDataHandler implements PortletDataHandler {
 
 		// Archived setups
 
-		if (ArrayUtil.contains(configurationOptions, "archived-setups")) {
+		if (ArrayUtil.contains(
+				configurationPortletOptions, "archived-setups")) {
+
 			configurationControls.add(
 				new PortletDataHandlerBoolean(
 					null, PortletDataHandlerKeys.PORTLET_ARCHIVED_SETUPS,
@@ -261,7 +270,9 @@ public abstract class BasePortletDataHandler implements PortletDataHandler {
 
 		// User preferences
 
-		if (ArrayUtil.contains(configurationOptions, "user-preferences")) {
+		if (ArrayUtil.contains(
+				configurationPortletOptions, "user-preferences")) {
+
 			configurationControls.add(
 				new PortletDataHandlerBoolean(
 					null, PortletDataHandlerKeys.PORTLET_USER_PREFERENCES,
@@ -351,6 +362,11 @@ public abstract class BasePortletDataHandler implements PortletDataHandler {
 	@Override
 	public boolean isPublishToLiveByDefault() {
 		return _publishToLiveByDefault;
+	}
+
+	@Override
+	public boolean isSupportsDataStrategyCopyAsNew() {
+		return _supportsDataStrategyCopyAsNew;
 	}
 
 	@Override
@@ -487,7 +503,6 @@ public abstract class BasePortletDataHandler implements PortletDataHandler {
 					String.valueOf(importedDisplayStyleGroupId));
 			}
 			else {
-				portletPreferences.setValue("displayStyle", StringPool.BLANK);
 				portletPreferences.setValue(
 					"displayStyleGroupId", StringPool.BLANK);
 			}
@@ -796,6 +811,12 @@ public abstract class BasePortletDataHandler implements PortletDataHandler {
 		_publishToLiveByDefault = publishToLiveByDefault;
 	}
 
+	protected void setSupportsDataStrategyCopyAsNew(
+		boolean supportsDataStrategyCopyAsNew) {
+
+		_supportsDataStrategyCopyAsNew = supportsDataStrategyCopyAsNew;
+	}
+
 	private static Log _log = LogFactoryUtil.getLog(
 		BasePortletDataHandler.class);
 
@@ -814,5 +835,6 @@ public abstract class BasePortletDataHandler implements PortletDataHandler {
 		new PortletDataHandlerControl[0];
 	private String _portletId;
 	private boolean _publishToLiveByDefault;
+	private boolean _supportsDataStrategyCopyAsNew = true;
 
 }

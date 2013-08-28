@@ -14,10 +14,15 @@
 
 package com.liferay.portal.lar;
 
+import com.liferay.portal.LocaleException;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
+import com.liferay.portal.kernel.lar.PortletDataHandler;
+import com.liferay.portal.kernel.lar.PortletDataHandlerKeys;
 import com.liferay.portal.kernel.template.TemplateHandler;
 import com.liferay.portal.kernel.util.GetterUtil;
+import com.liferay.portal.kernel.util.LocaleUtil;
+import com.liferay.portal.kernel.util.MapUtil;
 import com.liferay.portal.kernel.util.StringPool;
 import com.liferay.portal.model.Group;
 import com.liferay.portal.model.Portlet;
@@ -40,7 +45,9 @@ import com.liferay.portlet.portletdisplaytemplate.util.PortletDisplayTemplate;
 
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import javax.portlet.PortletPreferences;
@@ -86,6 +93,62 @@ public class BasePortletExportImportTestCase extends BaseExportImportTestCase {
 	}
 
 	@Test
+	public void testExportImportDeletions() throws Exception {
+		StagedModel stagedModel = addStagedModel(group.getGroupId());
+
+		if (stagedModel == null) {
+			return;
+		}
+
+		String stagedModelUuid = getStagedModelUuid(stagedModel);
+
+		doExportImportPortlet(getPortletId());
+
+		deleteStagedModel(stagedModel);
+
+		doExportImportPortlet(getPortletId());
+
+		StagedModel importedStagedModel = getStagedModel(
+			stagedModelUuid, importedGroup.getGroupId());
+
+		Assert.assertNotNull(importedStagedModel);
+
+		Map<String, String[]> exportParameterMap =
+			new LinkedHashMap<String, String[]>();
+
+		exportParameterMap.put(
+			PortletDataHandlerKeys.DELETIONS,
+			new String[]{ String.valueOf(true)});
+
+		doExportImportPortlet(
+			getPortletId(), exportParameterMap, getImportParameterMap());
+
+		importedStagedModel = getStagedModel(
+			stagedModelUuid, importedGroup.getGroupId());
+
+		Assert.assertNotNull(importedStagedModel);
+
+		Map<String, String[]> importParameterMap =
+			new LinkedHashMap<String, String[]>();
+
+		importParameterMap.put(
+			PortletDataHandlerKeys.DELETIONS,
+			new String[]{ String.valueOf(true)});
+
+		doExportImportPortlet(
+			getPortletId(), exportParameterMap, importParameterMap);
+
+		try {
+			importedStagedModel = getStagedModel(
+				stagedModelUuid, importedGroup.getGroupId());
+
+			Assert.assertNull(importedStagedModel);
+		}
+		catch (Exception e) {
+		}
+	}
+
+	@Test
 	public void testExportImportDisplayStyleFromCurrentGroup()
 		throws Exception {
 
@@ -114,6 +177,21 @@ public class BasePortletExportImportTestCase extends BaseExportImportTestCase {
 		testExportImportDisplayStyle(group.getGroupId(), "layout");
 	}
 
+	@Test
+	public void testExportImportInvalidAvailableLocales() throws Exception {
+		testExportImportAvailableLocales(
+			new Locale[] {LocaleUtil.US, LocaleUtil.SPAIN},
+			new Locale[] {LocaleUtil.US, LocaleUtil.GERMANY}, true);
+	}
+
+	@Test
+	public void testExportImportValidAvailableLocales() throws Exception {
+		testExportImportAvailableLocales(
+			new Locale[] {LocaleUtil.US, LocaleUtil.SPAIN},
+			new Locale[] {LocaleUtil.US, LocaleUtil.SPAIN, LocaleUtil.GERMANY},
+			false);
+	}
+
 	protected AssetLink addAssetLink(
 			long groupId, String sourceStagedModelUuid,
 			String targetStagedModelUuid, int weight)
@@ -136,17 +214,29 @@ public class BasePortletExportImportTestCase extends BaseExportImportTestCase {
 	}
 
 	protected void doExportImportPortlet(String portletId) throws Exception {
+		doExportImportPortlet(
+			portletId, new LinkedHashMap<String, String[]>(),
+			new LinkedHashMap<String, String[]>());
+	}
+
+	protected void doExportImportPortlet(
+		String portletId, Map<String, String[]> exportParameterMap,
+		Map<String, String[]> importParameterMap) throws Exception {
+
+		MapUtil.merge(getExportParameterMap(), exportParameterMap);
+
 		larFile = LayoutLocalServiceUtil.exportPortletInfoAsFile(
 			layout.getPlid(), layout.getGroupId(), portletId,
-			getExportParameterMap(), null, null);
+			exportParameterMap, null, null);
 
 		importedLayout = LayoutTestUtil.addLayout(
 			importedGroup.getGroupId(), ServiceTestUtil.randomString());
 
+		MapUtil.merge(getImportParameterMap(), importParameterMap);
+
 		LayoutLocalServiceUtil.importPortletInfo(
 			TestPropsValues.getUserId(), importedLayout.getPlid(),
-			importedGroup.getGroupId(), portletId, getImportParameterMap(),
-			larFile);
+			importedGroup.getGroupId(), portletId, importParameterMap, larFile);
 	}
 
 	protected PortletPreferences getImportedPortletPreferences(
@@ -161,6 +251,46 @@ public class BasePortletExportImportTestCase extends BaseExportImportTestCase {
 
 		return LayoutTestUtil.getPortletPreferences(
 			importedLayout.getCompanyId(), importedLayout.getPlid(), portletId);
+	}
+
+	protected void testExportImportAvailableLocales(
+			Locale[] sourceAvailableLocales, Locale[] targetAvailableLocales,
+			boolean fail)
+		throws Exception {
+
+		Portlet portlet = PortletLocalServiceUtil.getPortletById(
+			group.getCompanyId(), getPortletId());
+
+		if (portlet == null) {
+			return;
+		}
+
+		PortletDataHandler portletDataHandler =
+			portlet.getPortletDataHandlerInstance();
+
+		if (!portletDataHandler.isDataLocalized()) {
+			Assert.assertTrue("This test does not apply", true);
+
+			return;
+		}
+
+		GroupTestUtil.updateDisplaySettings(
+			group.getGroupId(), sourceAvailableLocales, null);
+		GroupTestUtil.updateDisplaySettings(
+			importedGroup.getGroupId(), targetAvailableLocales, null);
+
+		try {
+			doExportImportPortlet(getPortletId());
+
+			if (fail) {
+				Assert.fail();
+			}
+		}
+		catch (LocaleException le) {
+			if (!fail) {
+				Assert.fail();
+			}
+		}
 	}
 
 	protected void testExportImportDisplayStyle(

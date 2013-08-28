@@ -1,4 +1,5 @@
 @import "compass";
+@import "mixins";
 
 @import url(../../classic/css/custom_common.css);
 
@@ -209,7 +210,13 @@ $dockbarOpenGradientStart: #0EA6F9;
 				}
 
 				.control-panel-site-selector {
+					font-size: inherit;
 					margin-top: 0;
+					vertical-align: baseline;
+
+					a {
+						text-decoration: none;
+					}
 
 					.caret {
 						border-top-color: #FFF;
@@ -322,6 +329,24 @@ $dockbarOpenGradientStart: #0EA6F9;
 						font-size: 0.8em;
 					}
 				}
+			}
+		}
+	}
+
+	/* ---------- Form Navigator ---------- */
+
+	.portlet-journal {
+		form {
+			margin-bottom: 0;
+		}
+
+		.article-form-add {
+			.taglib-header {
+				margin-bottom: 0;
+			}
+
+			.journal-article-header-edit {
+				border-top-width: 0;
 			}
 		}
 	}
@@ -535,6 +560,8 @@ $dockbarOpenGradientStart: #0EA6F9;
 				vertical-align: middle;
 
 				.control-panel-site-selector {
+					font-size: inherit;
+
 					.dropdown-toggle {
 						i.caret {
 							background: url(../images/custom/arrow_option_down.png) no-repeat 0 0;
@@ -589,6 +616,7 @@ $dockbarOpenGradientStart: #0EA6F9;
 			background: #FCFCFC;
 			border: 1px solid #D1D1D1;
 			border-width: 0 0 0 1px;
+			padding-top: 0;
 
 			.nav-header {
 				background: #F3F3F3;
@@ -709,7 +737,7 @@ $dockbarOpenGradientStart: #0EA6F9;
 		@include border-radius(4px);
 	}
 
-	/* ---------- Dockbar ---------- */
+	/* ---------- Extras Dockbar ---------- */
 
 	.dockbar {
 		.navbar-inner {
@@ -750,6 +778,60 @@ $dockbarOpenGradientStart: #0EA6F9;
 		.form-navigator.well {
 			@include border-radius(0);
 			@include box-shadow(-3px 0px 2px -2px #F5F5F5);
+		}
+	}
+
+	/* ---------- Media Queries ---------- */
+
+	@include respond-to(phone, tablet) {
+		ul.form-navigator.well {
+			.button-holder {
+				bottom: 0;
+				position: absolute;
+			}
+		}
+
+		.portlet-journal {
+			.journal-article-header-edit {
+				border-top-width: 1px;
+			}
+		}
+
+		.nav-list .nav-header {
+			margin-left: 0;
+			margin-right: 0;
+		}
+
+		.tabbable-content.taglib-form-navigator {
+			padding-bottom: 50px;
+			position: relative;
+		}
+
+		.taglib-form-navigator .nav.form-navigator.well {
+			border-top-width: 0;
+			margin-top: 0;
+			padding: 0;
+		}
+	}
+
+	@include respond-to(phone) {
+		.panel-page-menu .portlet-borderless-container {
+			border-left: 1px solid #D1D1D1;
+
+			&:after {
+				background-image: none;
+			}
+
+			.accordion .accordion-group {
+				@include box-shadow(none);
+			}
+		}
+
+		.span6 {
+			&.article-structure, &.article-template {
+				float: left;
+				width: 45%;
+			}
 		}
 	}
 }
