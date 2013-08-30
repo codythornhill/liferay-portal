@@ -21,7 +21,7 @@ long groupId = ParamUtil.getLong(request, "groupId", themeDisplay.getScopeGroupI
 
 PortletURL portletURL = currentURLObj;
 
-portletURL.setParameter("tabs3", "all-export-processes");
+portletURL.setParameter("tabs3", "current-and-previous");
 
 String orderByCol = ParamUtil.getString(request, "orderByCol");
 String orderByType = ParamUtil.getString(request, "orderByType");
@@ -57,7 +57,7 @@ OrderByComparator orderByComparator = BackgroundTaskUtil.getBackgroundTaskOrderB
 	>
 		<liferay-ui:search-container-column-text
 			name="user-name"
-			value="<%= backgroundTask.getUserName() %>"
+			value="<%= HtmlUtil.escape(backgroundTask.getUserName()) %>"
 		/>
 
 		<liferay-ui:search-container-column-jsp
@@ -93,11 +93,11 @@ OrderByComparator orderByComparator = BackgroundTaskUtil.getBackgroundTaskOrderB
 					for (FileEntry fileEntry : attachmentsFileEntries) {
 					%>
 
-						<portlet:actionURL var="attachmentURL" windowState="<%= LiferayWindowState.EXCLUSIVE.toString() %>">
-							<portlet:param name="struts_action" value="/group_pages/get_background_task_attachment" />
+						<portlet:resourceURL var="attachmentURL">
+							<portlet:param name="struts_action" value="/portlet_configuration/get_background_task_attachment" />
 							<portlet:param name="backgroundTaskId" value="<%= String.valueOf(backgroundTask.getBackgroundTaskId()) %>" />
 							<portlet:param name="attachment" value="<%= fileEntry.getTitle() %>" />
-						</portlet:actionURL>
+						</portlet:resourceURL>
 
 						<%
 						StringBundler sb = new StringBundler(4);
@@ -159,3 +159,13 @@ OrderByComparator orderByComparator = BackgroundTaskUtil.getBackgroundTaskOrderB
 
 	<liferay-ui:search-iterator />
 </liferay-ui:search-container>
+
+<%
+int incompleteBackgroundTaskCount = BackgroundTaskLocalServiceUtil.getBackgroundTasksCount(groupId, selPortlet.getPortletId(), PortletExportBackgroundTaskExecutor.class.getName(), false);
+%>
+
+<div class="hide incomplete-process-message">
+	<liferay-util:include page="/html/portlet/layouts_admin/incomplete_processes_message.jsp">
+		<liferay-util:param name="incompleteBackgroundTaskCount" value="<%= String.valueOf(incompleteBackgroundTaskCount) %>" />
+	</liferay-util:include>
+</div>

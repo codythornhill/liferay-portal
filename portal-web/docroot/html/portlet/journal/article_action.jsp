@@ -72,11 +72,14 @@ else {
 				modelResourceDescription="<%= article.getTitle(locale) %>"
 				resourcePrimKey="<%= String.valueOf(article.getResourcePrimKey()) %>"
 				var="permissionsURL"
+				windowState="<%= LiferayWindowState.POP_UP.toString() %>"
 			/>
 
 			<liferay-ui:icon
 				image="permissions"
+				method="get"
 				url="<%= permissionsURL %>"
+				useDialog="<%= true %>"
 			/>
 		</c:if>
 
@@ -114,7 +117,7 @@ else {
 			</c:if>
 		</c:if>
 
-		<c:if test="<%= JournalArticlePermission.contains(permissionChecker, article, ActionKeys.EXPIRE) && (article.getStatus() == WorkflowConstants.STATUS_APPROVED) %>">
+		<c:if test="<%= JournalArticlePermission.contains(permissionChecker, article, ActionKeys.EXPIRE) && article.hasApprovedVersion() %>">
 			<portlet:actionURL var="expireURL">
 				<portlet:param name="struts_action" value="/journal/edit_article" />
 				<portlet:param name="<%= Constants.CMD %>" value="<%= Constants.EXPIRE %>" />
