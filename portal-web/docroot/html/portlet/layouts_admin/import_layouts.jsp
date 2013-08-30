@@ -24,12 +24,23 @@ String[] tempFileEntryNames = LayoutServiceUtil.getTempFileEntryNames(groupId, E
 %>
 
 <liferay-ui:tabs
-	names="new-import-process,all-import-processes"
+	names="new-import-process,current-and-previous"
 	param="tabs2"
 	refresh="<%= false %>"
 >
 	<liferay-ui:section>
 		<div id="<portlet:namespace />exportImportOptions">
+
+			<%
+			int incompleteBackgroundTaskCount = BackgroundTaskLocalServiceUtil.getBackgroundTasksCount(groupId, LayoutImportBackgroundTaskExecutor.class.getName(), false);
+			%>
+
+			<div class="<%= (incompleteBackgroundTaskCount == 0) ? "hide" : "in-progress" %>" id="<portlet:namespace />incompleteProcessMessage">
+				<liferay-util:include page="/html/portlet/layouts_admin/incomplete_processes_message.jsp">
+					<liferay-util:param name="incompleteBackgroundTaskCount" value="<%= String.valueOf(incompleteBackgroundTaskCount) %>" />
+				</liferay-util:include>
+			</div>
+
 			<c:choose>
 				<c:when test="<%= (tempFileEntryNames.length > 0) && !validate %>">
 					<liferay-util:include page="/html/portlet/layouts_admin/import_layouts_resources.jsp" />
@@ -60,6 +71,7 @@ String[] tempFileEntryNames = LayoutServiceUtil.getTempFileEntryNames(groupId, E
 	new Liferay.ExportImport(
 		{
 			form: document.<portlet:namespace />fm1,
+			incompleteProcessMessageNode: '#<portlet:namespace />incompleteProcessMessage',
 			namespace: '<portlet:namespace />',
 			processesNode: '#importProcesses',
 			processesResourceURL: '<%= importProcessesURL.toString() %>'

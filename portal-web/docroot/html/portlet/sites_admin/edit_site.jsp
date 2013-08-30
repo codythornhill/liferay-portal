@@ -132,9 +132,6 @@ String[][] categorySections = {mainSections, seoSections, advancedSections, misc
 	}
 	%>
 
-	<liferay-util:include page="/html/portlet/sites_admin/toolbar.jsp">
-		<liferay-util:param name="toolbarItem" value='<%= (group == null) ? "add" : "browse" %>' />
-	</liferay-util:include>
 </c:if>
 
 <c:if test="<%= (group == null) || !layout.isTypeControlPanel() %>">
@@ -236,7 +233,7 @@ String[][] categorySections = {mainSections, seoSections, advancedSections, misc
 		</c:if>
 
 		if (ok) {
-			<c:if test="<%= (group != null) %>">
+			<c:if test="<%= (group != null) && !group.isCompany() %>">
 				<portlet:namespace />saveLocales();
 			</c:if>
 

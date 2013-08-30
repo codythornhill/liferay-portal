@@ -46,7 +46,7 @@ integerFormat.setMinimumFractionDigits(0);
 		<liferay-ui:message key="loan-amount" />
 	</td>
 	<td>
-		<input autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" name="<portlet:namespace />loanAmount" size="5" type="text" value="<%= integerFormat.format(loanAmount) %>" />
+		<aui:input autoFocus="<%= windowState.equals(WindowState.MAXIMIZED) %>" name="loanAmount" size="5" value="<%= integerFormat.format(loanAmount) %>" />
 	</td>
 </tr>
 <tr>

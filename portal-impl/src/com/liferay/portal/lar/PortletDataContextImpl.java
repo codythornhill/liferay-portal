@@ -33,6 +33,7 @@ import com.liferay.portal.kernel.lar.StagedModelType;
 import com.liferay.portal.kernel.lar.UserIdStrategy;
 import com.liferay.portal.kernel.log.Log;
 import com.liferay.portal.kernel.log.LogFactoryUtil;
+import com.liferay.portal.kernel.util.ArrayUtil;
 import com.liferay.portal.kernel.util.KeyValuePair;
 import com.liferay.portal.kernel.util.ListUtil;
 import com.liferay.portal.kernel.util.MapUtil;
@@ -238,7 +239,7 @@ public class PortletDataContextImpl implements PortletDataContext {
 	@Override
 	public void addClassedModel(
 			Element element, String path, ClassedModel classedModel,
-			String namespace)
+			Class<?> clazz, String namespace)
 		throws PortalException, SystemException {
 
 		element.addAttribute("path", path);
@@ -273,7 +274,6 @@ public class PortletDataContextImpl implements PortletDataContext {
 			return;
 		}
 
-		Class<?> clazz = classedModel.getModelClass();
 		long classPK = getClassPK(classedModel);
 
 		addAssetCategories(clazz, classPK);
@@ -301,6 +301,17 @@ public class PortletDataContextImpl implements PortletDataContext {
 		}
 
 		addZipEntry(path, classedModel);
+	}
+
+	@Override
+	public void addClassedModel(
+			Element element, String path, ClassedModel classedModel,
+			String namespace)
+		throws PortalException, SystemException {
+
+		addClassedModel(
+			element, path, classedModel, classedModel.getModelClass(),
+			namespace);
 	}
 
 	@Override
@@ -727,7 +738,18 @@ public class PortletDataContextImpl implements PortletDataContext {
 	public ServiceContext createServiceContext(
 		Element element, ClassedModel classedModel, String namespace) {
 
-		return createServiceContext(element, null, classedModel, namespace);
+		return createServiceContext(
+			element, null, classedModel, classedModel.getModelClass(),
+			namespace);
+	}
+
+	@Override
+	public ServiceContext createServiceContext(
+		StagedModel stagedModel, Class<?> clazz, String namespace) {
+
+		return createServiceContext(
+			null, ExportImportPathUtil.getModelPath(stagedModel), stagedModel,
+			clazz, namespace);
 	}
 
 	@Override
@@ -735,20 +757,20 @@ public class PortletDataContextImpl implements PortletDataContext {
 		StagedModel stagedModel, String namespace) {
 
 		return createServiceContext(
-			ExportImportPathUtil.getModelPath(stagedModel), stagedModel,
-			namespace);
+			stagedModel, stagedModel.getModelClass(), namespace);
 	}
 
 	@Override
 	public ServiceContext createServiceContext(
 		String path, ClassedModel classedModel, String namespace) {
 
-		return createServiceContext(null, path, classedModel, namespace);
+		return createServiceContext(
+			null, path, classedModel, classedModel.getModelClass(), namespace);
 	}
 
 	@Override
 	public Object fromXML(byte[] bytes) {
-		if ((bytes == null) || (bytes.length == 0)) {
+		if (ArrayUtil.isEmpty(bytes)) {
 			return null;
 		}
 
@@ -885,6 +907,13 @@ public class PortletDataContextImpl implements PortletDataContext {
 			String path = ExportImportPathUtil.getModelPath(stagedModel);
 
 			element = getDataElement(groupElement, "path", path);
+
+			if (element != null) {
+				return element;
+			}
+
+			element = getDataElement(
+				groupElement, "uuid", stagedModel.getUuid());
 
 			if (element != null) {
 				return element;
@@ -1327,14 +1356,13 @@ public class PortletDataContextImpl implements PortletDataContext {
 	@Override
 	public void importClassedModel(
 			ClassedModel classedModel, ClassedModel newClassedModel,
-			String namespace)
+			Class<?> clazz, String namespace)
 		throws PortalException, SystemException {
 
 		if (!isResourceMain(classedModel)) {
 			return;
 		}
 
-		Class<?> clazz = classedModel.getModelClass();
 		long classPK = getClassPK(classedModel);
 
 		long newClassPK = getClassPK(newClassedModel);
@@ -1363,6 +1391,17 @@ public class PortletDataContextImpl implements PortletDataContext {
 
 			importRatingsEntries(clazz, classPK, newClassPK);
 		}
+	}
+
+	@Override
+	public void importClassedModel(
+			ClassedModel classedModel, ClassedModel newClassedModel,
+			String namespace)
+		throws PortalException, SystemException {
+
+		importClassedModel(
+			classedModel, newClassedModel, classedModel.getModelClass(),
+			namespace);
 	}
 
 	@Override
@@ -1861,10 +1900,9 @@ public class PortletDataContextImpl implements PortletDataContext {
 	}
 
 	protected ServiceContext createServiceContext(
-		Element element, String path, ClassedModel classedModel,
+		Element element, String path, ClassedModel classedModel, Class<?> clazz,
 		String namespace) {
 
-		Class<?> clazz = classedModel.getModelClass();
 		long classPK = getClassPK(classedModel);
 
 		ServiceContext serviceContext = new ServiceContext();
@@ -2059,10 +2097,12 @@ public class PortletDataContextImpl implements PortletDataContext {
 			return null;
 		}
 
-		StringBundler sb = new StringBundler(4);
+		StringBundler sb = new StringBundler(6);
 
 		sb.append("staged-model");
-		sb.append("[@" + attribute + "='");
+		sb.append("[@");
+		sb.append(attribute);
+		sb.append("='");
 		sb.append(value);
 		sb.append("']");
 

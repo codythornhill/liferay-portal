@@ -35,11 +35,12 @@
 		thead th {
 			background-color: #F0EFEF;
 			font-size: 15px;
+			font-weight: normal;
 		}
 
 		.table-sort-liner a {
 			color: #555;
-			font-weight: bold;
+			font-weight: normal;
 			text-decoration: underline;
 		}
 	}
@@ -54,6 +55,10 @@
 		> td, > th {
 			background-color: #EDF8FD;
 		}
+	}
+
+	form fieldset.fieldset {
+		min-width: 100%;
 	}
 
 	form .accordion-heading .accordion-toggle {
@@ -84,7 +89,6 @@
 		color: #555;
 		font-size: 15px;
 		font-weight: lighter;
-		margin-left: 6px;
 	}
 
 	select:focus {
@@ -127,6 +131,10 @@
 		margin-bottom: 30px;
 	}
 
+	.lfr-ddm-container .control-group {
+		margin-bottom: 15px;
+	}
+
 	.input-append {
 		padding-right: 12px;
 	}
@@ -136,10 +144,6 @@
 	}
 
 	/* ---------- Main ---------- */
-
-	#wrapper {
-		padding: 1em 3em 0;
-	}
 
 	.logo, .logo:hover {
 		color: #333;
@@ -195,6 +199,17 @@
 	}
 
 	/* ---------- Dockbar ---------- */
+
+	.dockbar-split {
+		.dockbar .navbar-inner {
+			background: none;
+			visibility: hidden;
+		}
+
+		&.dockbar-ready .dockbar .navbar-inner {
+			visibility: visible;
+		}
+	}
 
 	.dockbar {
 		.navbar-inner {
@@ -297,13 +312,9 @@
 			}
 		}
 
-		.nav-account-controls {
-			float: right;
-
-			li ul li a:hover i {
-				background-image: none;
-				text-decoration: none;
-			}
+		.nav-account-controls li ul li a:hover i {
+			background-image: none;
+			text-decoration: none;
 		}
 
 		.divider-vertical {
@@ -331,18 +342,6 @@
 		}
 	}
 
-	.lfr-has-add-content .nav-add-controls {
-		left: 350px;
-	}
-
-	.lfr-has-device-preview .nav-add-controls {
-		left: 220px;
-	}
-
-	.lfr-has-edit-layout .nav-add-controls {
-		left: 460px;
-	}
-
 	/* ---------- Nav#Navigation ---------- */
 
 	.modify-pages .delete-tab {
@@ -363,7 +362,7 @@
 	/* ---------- Breadcrumbs ---------- */
 
 	.breadcrumb {
-		padding: 7px 15px 4px;
+		padding: 3px 15px 2px;
 
 		li {
 			span.divider {
@@ -389,7 +388,7 @@
 
 	/* ---------- Form navigator ---------- */
 
-	@include respond-to(tablet) {
+	@include respond-to(phone, tablet) {
 		.taglib-form-navigator {
 			.form-navigator-content {
 				clear: both;
@@ -416,6 +415,10 @@
 						padding: 0.1em 1em;
 					}
 				}
+			}
+
+			.nobr {
+				white-space: normal;
 			}
 		}
 	}
@@ -520,8 +523,12 @@
 		background-color: #FFF;
 	}
 
-	&.ie .dockbar .navbar-inner {
-		filter: none;
+	&.ie {
+		.dockbar, #navigation {
+			.navbar-inner {
+				filter: none;
+			}
+		}
 	}
 
 	&.ie6, &.ie7 {

@@ -20,8 +20,6 @@ import com.liferay.portal.kernel.dao.orm.Property;
 import com.liferay.portal.kernel.dao.orm.PropertyFactoryUtil;
 import com.liferay.portal.kernel.exception.PortalException;
 import com.liferay.portal.kernel.exception.SystemException;
-import com.liferay.portal.kernel.log.Log;
-import com.liferay.portal.kernel.log.LogFactoryUtil;
 import com.liferay.portal.kernel.search.BaseIndexer;
 import com.liferay.portal.kernel.search.BooleanQuery;
 import com.liferay.portal.kernel.search.Document;
@@ -157,13 +155,12 @@ public class MBThreadIndexer extends BaseIndexer {
 				document, MBThread.class.getName(), thread.getThreadId(), null,
 				null, MBThreadTrashRenderer.TYPE);
 
-			String className = MBThread.class.getName();
-			long classPK = thread.getThreadId();
+			String className = MBCategory.class.getName();
+			long classPK = thread.getCategoryId();
 
 			if (thread.isInTrashContainer()) {
 				MBCategory category = thread.getTrashContainer();
 
-				className = MBCategory.class.getName();
 				classPK = category.getCategoryId();
 			}
 
@@ -327,7 +324,5 @@ public class MBThreadIndexer extends BaseIndexer {
 		SearchEngineUtil.updateDocuments(
 			getSearchEngineId(), companyId, documents);
 	}
-
-	private static Log _log = LogFactoryUtil.getLog(MBThreadIndexer.class);
 
 }
